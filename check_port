@@ -1,0 +1,59 @@
+#!/usr/bin/python
+import socket
+import re
+import sys
+import json
+def check_server(address, port):
+        s = socket.socket()
+        try:
+                s.connect((address, port))
+                return True
+        except socket.error, e:
+                return False
+
+"""
+"metric": "mysql.open_tables",
+        "data_type": "counter",
+        "value": 89,
+        "tags": {
+            "port": "3306"
+        }
+
+"""
+def print_json_list(port):
+	port_dict = {
+			"metric":"net.port.listen",
+			"data_type": "gauge",
+		    } 
+	tags_dict = {}
+	tags_dict["port"] = "%s" % port
+	port_dict["tags"] = tags_dict
+	status = check_server('127.0.0.1',int(port))
+	if status:
+		port_dict["value"] = 1
+	else:
+		port_dict["value"] = 3
+	return port_dict
+	
+if __name__ == "__main__":
+	data = []
+	if len(sys.argv) < 2:
+		print "Error.Args not null"
+		sys.exit()
+	if len(sys.argv) == 2:
+		port = sys.argv[1]
+	try:
+		if len(port.split(',')) == 1:
+			raise Exception('1')
+		port = list(port.split(','))
+	except Exception,e:
+		pass
+	if type(port) == list:
+		for p in port:
+			port_dict = print_json_list(p)
+			data.append(port_dict)
+	else:
+		port_dict = print_json_list(port)
+		data.append(port_dict)
+
+	print json.dumps(data,indent=4)
