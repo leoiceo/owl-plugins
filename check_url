@@ -1,0 +1,84 @@
+#!/usr/bin/python
+# coding: UTF-8
+import StringIO
+import pycurl
+import sys
+import os
+import json
+
+class Http_Test:
+    def __init__(self):
+        self.contents = ''
+    def body_callback(self,buf):
+        self.contents = self.contents + buf
+
+def Check_Url(input_url):
+    t = Http_Test()
+    c = pycurl.Curl()
+    c.setopt(pycurl.WRITEFUNCTION,t.body_callback)
+    c.setopt(pycurl.ENCODING, 'gzip')
+    c.setopt(pycurl.URL,input_url)
+    c.perform()
+    http_code = c.getinfo(pycurl.HTTP_CODE)
+    http_conn_time = c.getinfo(pycurl.CONNECT_TIME)
+    http_pre_tran = c.getinfo(pycurl.PRETRANSFER_TIME)
+    http_start_tran = c.getinfo(pycurl.STARTTRANSFER_TIME)
+    http_total_time = c.getinfo(pycurl.TOTAL_TIME)
+    http_size = c.getinfo(pycurl.SIZE_DOWNLOAD)
+    http_namelookup_time = c.getinfo(pycurl.NAMELOOKUP_TIME)
+    info = """
+    监测URL：%s
+    响应代码: %s
+    连接时间: %.3f秒
+    域名解析时间: %.3f秒
+    请求总的时间: %.3f秒
+    """ %( input_url,http_code,http_conn_time,http_namelookup_time,http_total_time)
+    #print info
+    info_dict = {}
+    info_dict['http_code'] = http_code
+    info_dict['http_conn_time'] = "%.3f" % http_conn_time
+    info_dict['http_namelookup_time'] = "%.3f" % http_namelookup_time
+    info_dict['http_total_time'] = "%.3f" % http_total_time
+    return info_dict
+
+def print_json_list(info_dict,check_url):
+    """
+        "metric": "mysql.open_tables",
+        "data_type": "counter",
+        "value": 89,
+        "tags": {
+            "port": "3306"
+        }
+    """
+    for k,v in info_dict.items():
+        url_info_dict = {}
+        url_info_dict["metric"] = 'url.%s' % k
+        url_info_dict["data_type"] = "GAUGE"
+        url_info_dict["value"] = float(v)
+        url_info_dict["tags"] = {
+            "check_url" : "%s" % check_url
+        }
+        data.append(url_info_dict)
+    
+if __name__ == '__main__':
+    data = []
+    if len(sys.argv) < 2:
+        print "Error.Args not null"
+        sys.exit()
+    if len(sys.argv) == 2:
+        input_url = sys.argv[1]
+    try:
+        if len(input_url.split(',')) == 1:
+            raise Exception('1')
+        input_url = list(input_url.split(','))
+    except Exception,e:
+        pass
+    if type(input_url) == list:
+        for url in input_url:
+            info_dict = Check_Url(url)
+            print_json_list(info_dict,url)
+    else:
+        info_dict = Check_Url(input_url)
+        print_json_list(info_dict,input_url)
+
+    print json.dumps(data,indent=4)
