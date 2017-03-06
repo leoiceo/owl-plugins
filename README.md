@@ -144,3 +144,41 @@ eg: check_port 80,10100
 ]
 
 ```
+* check_url 【站点监控】
+eg: check_url www.qq.com
+```
+[
+    {
+        "metric": "url.http_namelookup_time", 
+        "value": 0.001, 
+        "data_type": "GAUGE", 
+        "tags": {
+            "check_url": "www.qq.com"
+        }
+    }, 
+    {
+        "metric": "url.http_total_time", 
+        "value": 0.035999999999999997, 
+        "data_type": "GAUGE", 
+        "tags": {
+            "check_url": "www.qq.com"
+        }
+    }, 
+    {
+        "metric": "url.http_code", 
+        "value": 200.0, 
+        "data_type": "GAUGE", 
+        "tags": {
+            "check_url": "www.qq.com"
+        }
+    }, 
+    {
+        "metric": "url.http_conn_time", 
+        "value": 0.01, 
+        "data_type": "GAUGE", 
+        "tags": {
+            "check_url": "www.qq.com"
+        }
+    }
+]
+```
